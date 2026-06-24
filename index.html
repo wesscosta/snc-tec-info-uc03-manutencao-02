@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detetives da Manutenção | Jogo das 3 Pistas</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">UC Manutenção de Computadores</p>
+      <h1>Detetives da Manutenção</h1>
+      <p class="subtitle">Jogo das 3 pistas para diagnóstico técnico, hipóteses, testes e ranking global.</p>
+    </div>
+    <div class="status" id="connectionStatus">Verificando Supabase...</div>
+  </header>
+
+  <main class="layout">
+    <section class="card setup-card">
+      <h2>Identificação</h2>
+      <label>Nome do aluno ou dupla</label>
+      <input id="studentName" placeholder="Ex.: Ana Luiza" maxlength="80" />
+      <label>Turma</label>
+      <input id="className" placeholder="Ex.: UC03 Manutenção" maxlength="80" />
+      <button id="saveStudentBtn" class="primary">Entrar no jogo</button>
+      <p class="hint">Use sempre o mesmo nome para somar corretamente no ranking.</p>
+    </section>
+
+    <section class="card rules-card">
+      <h2>Regras</h2>
+      <div class="rules-grid">
+        <div><strong>1ª pista</strong><span>10 pontos</span></div>
+        <div><strong>2ª pista</strong><span>9 pontos</span></div>
+        <div><strong>3ª pista</strong><span>8 pontos</span></div>
+        <div><strong>Repescagem</strong><span>5 pontos</span></div>
+      </div>
+      <p>Para validar, informe diagnóstico provável, possíveis causas e como confirmaria o problema.</p>
+    </section>
+
+    <section class="card game-card">
+      <div class="section-head">
+        <div>
+          <h2>Casos técnicos</h2>
+          <p id="playerLabel" class="muted">Entre no jogo para responder.</p>
+        </div>
+        <button id="randomCaseBtn" class="secondary">Sortear caso</button>
+      </div>
+
+      <div class="case-selector" id="caseSelector"></div>
+
+      <article id="caseBox" class="case-box hidden">
+        <div class="case-title-row">
+          <h3 id="caseTitle"></h3>
+          <span id="casePoints" class="badge">10 pts</span>
+        </div>
+        <div id="clues" class="clues"></div>
+        <div class="actions">
+          <button id="nextClueBtn" class="primary">Revelar próxima pista</button>
+          <button id="rescueBtn" class="secondary">Responder como repescagem</button>
+        </div>
+
+        <form id="answerForm" class="answer-form">
+          <label>Diagnóstico provável</label>
+          <input id="diagnosis" placeholder="Ex.: Memória RAM com mau contato" required />
+
+          <label>Possíveis causas</label>
+          <textarea id="causes" placeholder="Liste pelo menos 2 causas tecnicamente plausíveis." required></textarea>
+
+          <label>Como você testaria ou confirmaria?</label>
+          <textarea id="verification" placeholder="Explique o procedimento de verificação." required></textarea>
+
+          <button class="primary" type="submit">Enviar resposta</button>
+          <p id="feedback" class="feedback"></p>
+        </form>
+      </article>
+    </section>
+
+    <aside class="card ranking-card">
+      <div class="section-head">
+        <div>
+          <h2>Ranking global</h2>
+          <p class="muted">Soma a melhor resposta de cada aluno/dupla por caso.</p>
+        </div>
+        <button id="refreshRankingBtn" class="secondary">Atualizar</button>
+      </div>
+      <ol id="rankingList" class="ranking"></ol>
+    </aside>
+  </main>
+
+  <footer>
+    <p>Professor: Weslley da Silva Costa · Senac PI</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
