@@ -1,120 +1,126 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Detetives da Manutenção | Jogo das 3 Pistas</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UC03 Arena Técnica v3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">UC Manutenção de Computadores</p>
-      <h1>Detetives da Manutenção</h1>
-      <p class="subtitle">Jogo das 3 pistas para diagnóstico técnico, hipóteses, testes e ranking global.</p>
-    </div>
-    <div class="status" id="connectionStatus">Verificando Supabase...</div>
-  </header>
-
-  <main class="layout">
-    <section class="card setup-card" id="setupCard">
-      <div id="loginBox">
-        <h2>Identificação</h2>
-        <label>Nome do aluno ou dupla</label>
-        <input id="studentName" placeholder="Ex.: Ana Luiza" maxlength="80" autocomplete="name" />
-        <label>Turma</label>
-        <select id="className">
-          <option value="UC03 Manutenção">UC03 Manutenção</option>
-          <option value="UC02 Gestão de Projetos de TI">UC02 Gestão de Projetos de TI</option>
-          <option value="Outra turma">Outra turma</option>
-        </select>
-        <button id="saveStudentBtn" class="primary">Entrar no jogo</button>
-        <p class="hint">O nome e a turma ficam salvos neste dispositivo usando localStorage.</p>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-shell">
+      <div class="brand-row center"><span class="logo">UC03</span><div><strong>Arena Técnica</strong><small>Manutenção de Computadores</small></div></div>
+      <div id="returningCard" class="login-card hidden">
+        <span class="eyebrow">Acesso salvo</span>
+        <h1 id="returningTitle">Continuar</h1>
+        <p id="returningMeta" class="muted"></p>
+        <div class="row-actions"><button id="continueBtn" class="btn primary">Continuar</button><button id="changeUserBtn" class="btn ghost">Entrar com outro usuário</button></div>
       </div>
+      <form id="identityForm" class="login-card">
+        <span class="eyebrow">Identificação</span>
+        <h1>Entre na trilha</h1>
+        <p class="muted">Informe seus dados uma única vez. Eles serão salvos neste navegador para somar sua pontuação corretamente.</p>
+        <div class="form-grid">
+          <label>Nome do aluno ou dupla<input id="studentName" placeholder="Ex.: Ana Luiza" required /></label>
+          <label>Turma<select id="studentClass"><option>UC03 Manutenção</option><option>UC03 Manutenção - Tarde</option><option>UC03 Manutenção - Noite</option></select></label>
+        </div>
+        <button class="btn primary" type="submit">Entrar na Arena</button>
+      </form>
+      <footer>UC03 Arena Técnica · Projeto educacional para aulas de manutenção de computadores.</footer>
+    </div>
+  </div>
 
-      <div id="savedPlayerBox" class="hidden">
-        <h2>Jogador identificado</h2>
-        <div class="player-card">
-          <div id="playerAvatar" class="avatar">?</div>
-          <div>
-            <strong id="savedStudentName">Aluno</strong>
-            <span id="savedClassName">Turma</span>
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand-row"><span class="logo">UC03</span><div><strong>Arena Técnica</strong><small>Manutenção de Computadores</small></div></div>
+      <nav class="side-nav" id="sideNav">
+        <button data-page="home" class="nav-item active"><span>🏠</span>Home</button>
+        <div class="nav-sep"></div>
+        <button data-page="diagnostico" class="nav-item student-module"><span>🎯</span>Diagnóstico</button>
+        <button data-page="anatomia" class="nav-item student-module"><span>🔧</span>Anatomia</button>
+        <button data-page="consultoria" class="nav-item student-module"><span>💻</span>Consultoria</button>
+        <button data-page="missoes" class="nav-item student-module"><span>🧩</span>Missões</button>
+        <button data-page="ranking" class="nav-item"><span>🏆</span>Ranking</button>
+        <button data-page="conquistas" class="nav-item"><span>🎖️</span>Conquistas</button>
+        <div class="nav-sep"></div>
+        <button data-page="professor" class="nav-item"><span>👨‍🏫</span>Professor</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="nav-item danger"><span>🚪</span>Sair / trocar usuário</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="home" class="page active">
+        <div class="hero-card">
+          <div><span class="eyebrow">Perfil do aluno</span><h1 id="welcomeName">Bem-vindo(a)</h1><p id="welcomeClass" class="muted"></p></div>
+          <div class="hero-stat"><span>Total acumulado</span><strong id="xpTotal">0 XP</strong></div>
+          <div class="hero-stat"><span>Modo da turma</span><strong id="modeBadge" class="success">História</strong></div>
+        </div>
+        <div id="arenaNotice" class="notice hidden"><strong>Modo Arena ativo.</strong> As atividades individuais estão bloqueadas. Aguarde o professor chamar o aluno sorteado.</div>
+        <div class="metric-grid">
+          <div class="metric"><span>Diagnóstico</span><strong id="xpDiag">0</strong><small>XP</small></div>
+          <div class="metric"><span>Anatomia</span><strong id="xpAnat">0</strong><small>XP</small></div>
+          <div class="metric"><span>Consultoria</span><strong id="xpCons">0</strong><small>XP</small></div>
+          <div class="metric"><span>Missões</span><strong id="xpExtra">0</strong><small>XP</small></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h2>Continue de onde parou</h2><p class="muted">Trilha principal da UC03 organizada por competências.</p></div><button class="btn primary" data-jump="diagnostico">Continuar diagnóstico</button></div>
+          <div class="course-grid">
+            <article class="course-card"><span>🎯</span><h3>Diagnóstico de Falhas</h3><p>50 casos com pistas progressivas, hipóteses, causas e testes.</p><div class="progress"><i id="progressDiag"></i></div></article>
+            <article class="course-card"><span>🔧</span><h3>Anatomia da Placa-mãe</h3><p>Identificação, função, defeitos, sintomas e procedimentos de teste.</p><div class="progress"><i id="progressAnat"></i></div></article>
+            <article class="course-card"><span>💻</span><h3>Consultoria de Hardware</h3><p>Proposta técnica com orçamento, compatibilidade, prazos e defesa.</p><div class="progress"><i id="progressCons"></i></div></article>
+            <article class="course-card"><span>🧩</span><h3>Missões Extras</h3><p>Bônus por participação, desafios rápidos e práticas em laboratório.</p><div class="progress"><i id="progressExtra"></i></div></article>
           </div>
         </div>
-        <div class="actions">
-          <button id="continueStudentBtn" class="primary">Continuar</button>
-          <button id="changeStudentBtn" class="secondary">Trocar usuário</button>
+        <div class="panel ranking-preview"><div class="panel-head"><h2>Ranking Global</h2><button id="refreshRankingHome" class="btn small">Atualizar</button></div><div id="rankingPodium" class="podium"></div></div>
+      </section>
+
+      <section id="diagnostico" class="page">
+        <div class="page-title"><div><span class="eyebrow">Modo História</span><h1>Diagnóstico de Falhas</h1><p class="muted">Casos sorteados progressivamente. Depois de enviado, o caso fica bloqueado para o aluno.</p></div></div>
+        <div id="diagBlocked" class="notice warning hidden"><strong>Modo Arena ativo.</strong> O diagnóstico individual está bloqueado.</div>
+        <div id="diagPlay" class="split">
+          <div class="panel"><div class="panel-head"><h2 id="caseTitle">Caso</h2><span id="caseStatus" class="pill">Pista 1</span></div><div id="pistasBox" class="pistas"></div><button id="revealHintBtn" class="btn ghost">Revelar próxima pista</button></div>
+          <form id="diagnosisForm" class="panel"><h2>Resposta técnica</h2><label>Diagnóstico provável<textarea id="diagAnswer" required></textarea></label><label>Possíveis causas<textarea id="diagCauses" required></textarea></label><label>Como testar ou confirmar<textarea id="diagTest" required></textarea></label><button class="btn primary" type="submit">Enviar resposta</button><p id="diagStatusMsg" class="status"></p></form>
         </div>
-        <p class="hint">Use “Trocar usuário” se outro aluno for utilizar o mesmo computador.</p>
-      </div>
-    </section>
+      </section>
 
-    <section class="card rules-card">
-      <h2>Regras</h2>
-      <div class="rules-grid">
-        <div><strong>1ª pista</strong><span>10 pontos</span></div>
-        <div><strong>2ª pista</strong><span>9 pontos</span></div>
-        <div><strong>3ª pista</strong><span>8 pontos</span></div>
-        <div><strong>Repescagem</strong><span>5 pontos</span></div>
-      </div>
-      <p>Para validar, informe diagnóstico provável, possíveis causas e como confirmaria o problema.</p>
-    </section>
+      <section id="anatomia" class="page">
+        <div class="page-title"><div><span class="eyebrow">Laboratório Interativo</span><h1>Anatomia da Placa-mãe</h1><p class="muted">Clique no componente, descreva nome, função, falhas, sintomas e teste.</p></div></div>
+        <div id="anatomiaBlocked" class="notice warning hidden"><strong>Modo Arena ativo.</strong> A atividade individual está bloqueada.</div>
+        <div id="anatomiaPlay" class="split wide-left"><div class="panel image-panel"><img src="assets/placa-mae.png" alt="Placa-mãe numerada" /></div><form id="anatomiaForm" class="panel"><h2>Ficha técnica</h2><label>Número do componente<select id="componentNumber"></select></label><label>Nome<input id="componentName" required /></label><label>Função<textarea id="componentFunction" required></textarea></label><label>Possíveis defeitos<textarea id="componentDefects" required></textarea></label><label>Sintomas<textarea id="componentSymptoms" required></textarea></label><label>Como testar<textarea id="componentTest" required></textarea></label><button class="btn primary" type="submit">Salvar componente</button><p id="anatStatusMsg" class="status"></p></form></div>
+      </section>
 
-    <section class="card game-card">
-      <div class="section-head">
-        <div>
-          <h2>Casos técnicos</h2>
-          <p id="playerLabel" class="muted">Entre no jogo para responder.</p>
+      <section id="consultoria" class="page">
+        <div class="page-title"><div><span class="eyebrow">Atividade Avaliativa</span><h1>Consultoria de Hardware</h1><p class="muted">Estrutura retomada da versão original: contexto, situação individual, entrega e auditoria técnica.</p></div></div>
+        <div id="consultoriaBlocked" class="notice warning hidden"><strong>Modo Arena ativo.</strong> A entrega individual está bloqueada.</div>
+        <div id="consultoriaPlay">
+          <div class="panel"><h2>Contexto</h2><p>Você foi contratado como analista de infraestrutura em uma empresa especializada em consultoria e montagem de computadores personalizados. Sua missão é atender um cliente com uma necessidade específica, pesquisar componentes reais no mercado, montar uma proposta técnica completa e respeitar o orçamento aprovado.</p></div>
+          <div class="panel"><h2>Situação individual</h2><div id="studentConsultingCase" class="case-card"></div></div>
+          <form id="consultForm" class="panel"><h2>Enviar links</h2><div class="form-grid"><label>Link da planilha<input id="sheetLink" type="url" required placeholder="https://..." /></label><label>Link do Canva/apresentação<input id="canvaLink" type="url" required placeholder="https://..." /></label></div><label>Observações<textarea id="consultObs"></textarea></label><div class="checks"><label><input type="checkbox" required /> Orçamento respeitado ou sobra justificada.</label><label><input type="checkbox" required /> Prazo final calculado.</label><label><input type="checkbox" required /> Consigo defender tecnicamente as escolhas.</label></div><button class="btn primary" type="submit">Enviar consultoria</button><p id="consultStatusMsg" class="status"></p></form>
         </div>
-        <button id="randomCaseBtn" class="secondary">Sortear caso</button>
-      </div>
+      </section>
 
-      <div class="case-selector" id="caseSelector"></div>
+      <section id="missoes" class="page"><div class="page-title"><div><span class="eyebrow">Bônus</span><h1>Missões Extras</h1><p class="muted">Desafios rápidos para pontuação complementar.</p></div></div><div id="missionsGrid" class="course-grid"></div></section>
+      <section id="ranking" class="page"><div class="page-title"><div><span class="eyebrow">Competição</span><h1>Ranking Global</h1></div><button id="refreshRankingBtn" class="btn primary">Atualizar ranking</button></div><div id="rankingFull" class="ranking-list"></div></section>
+      <section id="conquistas" class="page"><div class="page-title"><div><span class="eyebrow">Evolução</span><h1>Conquistas</h1></div></div><div id="badgesGrid" class="course-grid"></div></section>
 
-      <article id="caseBox" class="case-box hidden">
-        <div class="case-title-row">
-          <h3 id="caseTitle"></h3>
-          <span id="casePoints" class="badge">10 pts</span>
+      <section id="professor" class="page professor-page">
+        <div id="profLogin" class="panel compact-login"><h1>Área do Professor</h1><p class="muted">PIN padrão: 1234. Para produção, substitua por Supabase Auth.</p><label>PIN<input id="teacherPin" type="password" placeholder="Digite o PIN" /></label><button id="teacherLoginBtn" class="btn primary">Entrar</button></div>
+        <div id="profPanel" class="hidden">
+          <div class="page-title"><div><span class="eyebrow">Professor</span><h1>Painel de Controle</h1><p class="muted">Gerencie o modo da turma, conduza a Arena e avalie respostas.</p></div><button id="teacherLogoutBtn" class="btn ghost">Sair da área do professor</button></div>
+          <div class="teacher-grid">
+            <div class="panel"><h2>Modo da turma</h2><p class="muted">Configuração global. No Modo Arena, módulos individuais dos alunos ficam bloqueados.</p><div class="mode-switch"><span>História</span><label class="switch"><input id="globalArenaToggle" type="checkbox"><i></i></label><span>Arena</span></div><p id="teacherModeText" class="notice slim"></p></div>
+            <div class="panel"><h2>Atividades</h2><div id="activityToggles" class="toggle-list"></div></div>
+          </div>
+          <div class="panel arena-panel"><div class="panel-head"><div><h2>Arena ao vivo</h2><p class="muted">Sorteie aluno e caso; revele pistas progressivas; lance pontos manualmente.</p></div><span id="arenaRoundBadge" class="pill">Rodada 0</span></div><div class="arena-stage"><div><small>Aluno sorteado</small><strong id="arenaStudent">Aguardando</strong></div><div><small>Caso</small><strong id="arenaCase">--</strong></div><div><small>Pista atual</small><strong id="arenaHint">--</strong></div><div><small>Próximo aluno</small><strong id="arenaNext">--</strong></div></div><div id="arenaQuestion" class="question-box">Nenhuma rodada sorteada.</div><div class="row-actions"><button id="drawArenaBtn" class="btn primary">Sortear rodada</button><button id="nextArenaHintBtn" class="btn ghost">Revelar próxima pista</button><button id="passArenaBtn" class="btn warn">Repassar e sortear próximo</button><button id="fillEvalBtn" class="btn ghost">Preencher avaliação</button></div></div>
+          <div class="panel"><div class="panel-head"><h2>Respostas e entregas</h2><button id="refreshResponsesBtn" class="btn small">Atualizar</button></div><select id="responseFilter"><option value="diagnostico">Diagnóstico</option><option value="anatomia">Anatomia</option><option value="consultoria">Consultoria</option><option value="pontos">Pontuações</option></select><div class="table-wrap"><table><thead><tr><th>Aluno</th><th>Referência</th><th>Resposta/Entrega</th><th>XP</th><th>Data</th><th>Ação</th></tr></thead><tbody id="responsesTable"></tbody></table></div></div>
+          <form id="manualScoreForm" class="panel"><h2>Lançar avaliação manual</h2><div class="form-grid"><label>Aluno<input id="manualStudent" placeholder="Nome igual ao usado pelo aluno" required /></label><label>Turma<input id="manualClass" value="UC03 Manutenção" required /></label><label>Atividade<select id="manualActivity"><option value="diagnostico">Diagnóstico</option><option value="anatomia">Anatomia</option><option value="consultoria">Consultoria</option><option value="extra">Extra</option></select></label><label>Pontos<input id="manualPoints" type="number" min="0" max="100" required /></label></div><label>Comentário<textarea id="manualComment"></textarea></label><button class="btn primary" type="submit">Lançar pontos</button><p id="manualStatusMsg" class="status"></p></form>
         </div>
-        <div id="clues" class="clues"></div>
-        <div class="actions">
-          <button id="nextClueBtn" class="primary">Revelar próxima pista</button>
-          <button id="rescueBtn" class="secondary">Responder como repescagem</button>
-        </div>
-
-        <form id="answerForm" class="answer-form">
-          <label>Diagnóstico provável</label>
-          <input id="diagnosis" placeholder="Ex.: Memória RAM com mau contato" required />
-
-          <label>Possíveis causas</label>
-          <textarea id="causes" placeholder="Liste pelo menos 2 causas tecnicamente plausíveis." required></textarea>
-
-          <label>Como você testaria ou confirmaria?</label>
-          <textarea id="verification" placeholder="Explique o procedimento de verificação." required></textarea>
-
-          <button class="primary" type="submit">Enviar resposta</button>
-          <p id="feedback" class="feedback"></p>
-        </form>
-      </article>
-    </section>
-
-    <aside class="card ranking-card">
-      <div class="section-head">
-        <div>
-          <h2>Ranking global</h2>
-          <p class="muted">Soma a melhor resposta de cada aluno/dupla por caso.</p>
-        </div>
-        <button id="refreshRankingBtn" class="secondary">Atualizar</button>
-      </div>
-      <ol id="rankingList" class="ranking"></ol>
-    </aside>
-  </main>
-
-  <footer>
-    <p>Professor: Weslley da Silva Costa · Senac PI</p>
-  </footer>
-
+      </section>
+    </main>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>

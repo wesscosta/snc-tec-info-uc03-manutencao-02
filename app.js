@@ -1,217 +1,76 @@
-// 1) Troque pelos dados do seu projeto Supabase.
-// Supabase > Project Settings > API > Project URL e anon public key.
-const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE";
-const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_ANON_PUBLIC";
-
-const isConfigured = SUPABASE_URL.startsWith("https://") && SUPABASE_ANON_KEY.length > 40;
-const db = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-const cases = [
-  {id:1,title:"Computador não liga",clues:["O computador não liga.","Nenhum LED acende.","A tomada funciona normalmente com outro equipamento."],keywords:["fonte","alimentação","cabo de força","tomada","psu"]},
-  {id:2,title:"Liga, mas sem vídeo",clues:["O computador liga.","Não aparece nenhuma imagem.","Após remover e recolocar a memória RAM, voltou a funcionar."],keywords:["memória","ram","mau contato","slot"]},
-  {id:3,title:"Desliga após alguns minutos",clues:["O computador desliga sozinho.","Sempre após alguns minutos de uso.","O processador está muito quente."],keywords:["superaquecimento","temperatura","pasta térmica","cooler"]},
-  {id:4,title:"No Boot Device",clues:["O computador liga.","A BIOS abre normalmente.","Aparece a mensagem No Boot Device."],keywords:["ssd","hd","disco","boot","sata","m.2"]},
-  {id:5,title:"Tela azul",clues:["O Windows inicia.","Depois reinicia sozinho.","Uma tela azul aparece antes da reinicialização."],keywords:["ram","driver","sistema","windows","bsod"]},
-  {id:6,title:"Monitor sem sinal",clues:["O monitor não exibe imagem.","Outro monitor funciona no mesmo computador.","O cabo HDMI está rompido."],keywords:["cabo","hdmi","vga","displayport"]},
-  {id:7,title:"Disco em 100%",clues:["O computador está muito lento.","Abrir programas demora vários minutos.","O Gerenciador de Tarefas mostra disco em 100%."],keywords:["hd","disco","ssd","processos","setores","malware"]},
-  {id:8,title:"USB falhando",clues:["O mouse não funciona.","Em outra porta USB ele funciona.","Nenhum dispositivo funciona naquela porta."],keywords:["usb","porta","controladora","mau contato"]},
-  {id:9,title:"Wi-Fi conectado sem internet",clues:["A internet não funciona.","O Wi-Fi aparece como conectado.","Nenhum site abre, mas a rede local responde."],keywords:["dns","gateway","roteador","dhcp","internet"]},
-  {id:10,title:"Notebook sem imagem interna",clues:["O notebook liga.","A tela permanece preta.","Ao conectar um monitor externo aparece imagem."],keywords:["tela","display","flat","lcd","backlight"]},
-  {id:11,title:"Bipes ao ligar",clues:["O computador emite vários bipes.","Não aparece imagem.","Após trocar a RAM os bipes desaparecem."],keywords:["memória","ram","slot","mau contato"]},
-  {id:12,title:"Congelamento por temperatura",clues:["O computador congela.","O cursor para de responder.","A temperatura da CPU chega a 95°C."],keywords:["superaquecimento","temperatura","cpu","cooler","pasta térmica"]},
-  {id:13,title:"SSD não reconhecido",clues:["O SSD não aparece.","A BIOS também não o encontra.","Após trocar o cabo SATA, o SSD voltou."],keywords:["cabo sata","sata","ssd","cabo"]},
-  {id:14,title:"Sem áudio",clues:["O computador inicia normalmente.","Não há som em nenhum aplicativo.","O driver de áudio está ausente."],keywords:["driver","áudio","som","realtek"]},
-  {id:15,title:"Impressora não imprime",clues:["A impressora está ligada.","O documento não sai.","A fila de impressão está pausada."],keywords:["fila","impressão","spooler","impressora"]},
-  {id:16,title:"Artefatos na tela",clues:["O computador liga normalmente.","A imagem apresenta falhas, linhas e artefatos.","Após retirar a placa de vídeo dedicada o problema desaparece."],keywords:["gpu","placa de vídeo","vram","driver de vídeo"]},
-  {id:17,title:"USB frontal não funciona",clues:["O pendrive não funciona nas portas frontais.","Outro computador reconhece o pendrive normalmente.","Nenhuma USB frontal funciona."],keywords:["usb frontal","cabo interno","conector usb","placa mãe"]},
-  {id:18,title:"Notebook não carrega",clues:["O notebook não carrega.","O LED do carregador acende.","Outro carregador compatível resolve o problema."],keywords:["carregador","fonte","adaptador","dc jack"]},
-  {id:19,title:"Inicialização muito lenta",clues:["O Windows demora quase dez minutos para iniciar.","Depois de iniciar, ainda há travamentos.","O HD apresenta setores defeituosos."],keywords:["hd","setores","disco","bad block"]},
-  {id:20,title:"Cooler barulhento",clues:["O cooler faz muito barulho.","O gabinete acumula muita poeira.","As pás estão parcialmente travadas."],keywords:["cooler","poeira","ventoinha","lubrificação"]},
-  {id:21,title:"Reinício aleatório",clues:["O computador reinicia aleatoriamente.","Não aparece tela azul.","A fonte fornece tensão instável."],keywords:["fonte","psu","tensão","alimentação"]},
-  {id:22,title:"Teclado só funciona na BIOS",clues:["O teclado funciona na BIOS.","No Windows ele deixa de funcionar.","O driver HID está com erro."],keywords:["driver","hid","windows","teclado"]},
-  {id:23,title:"Webcam não reconhecida",clues:["A webcam não funciona.","Nenhum aplicativo consegue acessá-la.","Ela está desabilitada no Gerenciador de Dispositivos."],keywords:["webcam","driver","desabilitada","dispositivo"]},
-  {id:24,title:"Rede cabeada sem sinal",clues:["O computador não detecta rede cabeada.","O LED da porta RJ45 permanece apagado.","O cabo de rede está rompido."],keywords:["cabo de rede","rj45","ethernet","placa de rede"]},
-  {id:25,title:"Loop após atualização de BIOS",clues:["O computador liga normalmente.","Após alguns segundos reinicia continuamente.","A BIOS foi atualizada incorretamente."],keywords:["bios","uefi","firmware","cmos"]},
-  {id:26,title:"Data e hora sempre erradas",clues:["O computador liga normalmente.","A data e a hora voltam para valores antigos após desligar.","A configuração da BIOS também é perdida."],keywords:["bateria","cmos","cr2032","bios"]},
-  {id:27,title:"PC liga ao apertar várias vezes",clues:["O computador às vezes não responde ao botão power.","Depois de várias tentativas ele liga.","Ao fechar curto nos pinos do painel frontal, liga normalmente."],keywords:["botão power","painel frontal","front panel","gabinete"]},
-  {id:28,title:"RAM reconhecida parcialmente",clues:["O computador possui 16 GB instalados.","O sistema mostra apenas 8 GB utilizáveis.","Um dos slots não reconhece o módulo."],keywords:["ram","slot","memória","dual channel","placa mãe"]},
-  {id:29,title:"SSD M.2 não aparece",clues:["O SSD M.2 foi instalado recentemente.","A BIOS não mostra o dispositivo.","O manual informa que aquele slot desativa uma porta SATA ou exige modo NVMe."],keywords:["m.2","nvme","bios","compatibilidade","sata"]},
-  {id:30,title:"PC trava ao abrir jogos",clues:["O computador funciona em tarefas simples.","Ao abrir jogos ou programas pesados, trava ou fecha sozinho.","A placa de vídeo esquenta muito e o driver reinicia."],keywords:["gpu","placa de vídeo","temperatura","driver","fonte"]},
-  {id:31,title:"Sem internet após formatação",clues:["O Windows foi reinstalado.","Não aparece opção de Wi-Fi.","O Gerenciador de Dispositivos mostra controlador de rede sem driver."],keywords:["driver","rede","wi-fi","controlador"]},
-  {id:32,title:"Som saindo no dispositivo errado",clues:["O áudio existe, mas não sai na caixa desejada.","O fone Bluetooth aparece conectado.","O Windows selecionou outro dispositivo de saída."],keywords:["dispositivo de saída","áudio","bluetooth","configuração"]},
-  {id:33,title:"Tela azul ao conectar pendrive",clues:["O Windows funciona normalmente.","Ao conectar um pendrive específico, ocorre tela azul.","O antivírus detectou comportamento suspeito no dispositivo."],keywords:["malware","pendrive","driver","usb","vírus"]},
-  {id:34,title:"PC não mantém desempenho",clues:["O computador começa rápido.","Depois de algum tempo, fica lento.","A frequência do processador cai por temperatura alta."],keywords:["thermal throttling","superaquecimento","temperatura","cpu","cooler"]},
-  {id:35,title:"Erro de SMART",clues:["Ao ligar, aparece um aviso antes do sistema iniciar.","A mensagem recomenda fazer backup.","A ferramenta de diagnóstico mostra falhas SMART no disco."],keywords:["smart","hd","ssd","backup","disco"]},
-  {id:36,title:"Sistema sem espaço",clues:["O computador está lento e não atualiza.","O Windows informa pouco espaço disponível.","A unidade C está quase cheia."],keywords:["espaço","armazenamento","disco cheio","unidade c"]},
-  {id:37,title:"Monitor pisca",clues:["A imagem aparece e desaparece rapidamente.","O problema piora ao mexer no cabo.","Trocar o cabo DisplayPort resolve."],keywords:["cabo","displayport","hdmi","mau contato","monitor"]},
-  {id:38,title:"PC liga sozinho",clues:["O computador liga sem apertar o botão.","Isso ocorre depois de queda de energia.","Na BIOS, a opção de restaurar energia está ativada."],keywords:["bios","restore on ac power loss","energia","configuração"]},
-  {id:39,title:"Reinicia ao conectar periférico",clues:["O computador funciona até conectar um dispositivo USB.","Ao conectar, ele reinicia imediatamente.","O periférico apresenta curto em outro computador também."],keywords:["curto","usb","periférico","fonte","porta usb"]},
-  {id:40,title:"Teclas digitando errado",clues:["O teclado digita caracteres diferentes.","Algumas teclas aparecem trocadas.","O layout do teclado está configurado incorretamente."],keywords:["layout","abnt","teclado","idioma"]},
-  {id:41,title:"Notebook aquecendo na mesa",clues:["O notebook esquenta mais que o normal.","As saídas de ar estão parcialmente bloqueadas.","Usar uma base elevada reduz a temperatura."],keywords:["ventilação","superaquecimento","saída de ar","cooler"]},
-  {id:42,title:"Aplicativo fecha sozinho",clues:["O sistema continua funcionando.","Um programa específico fecha sem aviso.","O log aponta erro em biblioteca ou dependência."],keywords:["software","dependência","biblioteca","reinstalação","log"]},
-  {id:43,title:"Atualização travada",clues:["O Windows está tentando atualizar.","A instalação fica parada por muito tempo.","Há arquivos de atualização corrompidos na pasta do sistema."],keywords:["windows update","atualização","cache","sistema corrompido"]},
-  {id:44,title:"Internet lenta somente nesse PC",clues:["Outros dispositivos navegam bem.","Esse computador está com download muito baixo.","Há muitos processos consumindo rede em segundo plano."],keywords:["rede","processos","largura de banda","malware","driver"]},
-  {id:45,title:"Placa-mãe não salva configuração",clues:["A ordem de boot é alterada manualmente.","Após desligar da tomada, a configuração volta ao padrão.","A bateria CMOS está descarregada."],keywords:["cmos","bateria","bios","cr2032"]},
-  {id:46,title:"Erro ao instalar sistema",clues:["A instalação do Windows começa normalmente.","Na etapa de escolher o disco, nenhum armazenamento aparece.","O modo RAID/Intel RST está ativado na BIOS."],keywords:["raid","rst","driver","bios","armazenamento"]},
-  {id:47,title:"Microfone não capta som",clues:["O fone reproduz áudio normalmente.","Nenhum aplicativo recebe voz.","A permissão de microfone está desativada no sistema."],keywords:["microfone","permissão","privacidade","driver","entrada"]},
-  {id:48,title:"PC com cheiro de queimado",clues:["O computador desligou durante o uso.","Há cheiro forte vindo da fonte.","Ao testar com outra fonte, o computador liga."],keywords:["fonte","queimado","psu","curto","alimentação"]},
-  {id:49,title:"Imagem só aparece pela placa-mãe",clues:["O cabo está conectado na saída da placa-mãe.","Existe uma placa de vídeo dedicada instalada.","Ao conectar o cabo na GPU, a imagem aparece corretamente."],keywords:["placa de vídeo","gpu","saída de vídeo","conexão"]},
-  {id:50,title:"Computador lento com pop-ups",clues:["O computador exibe propagandas inesperadas.","O navegador abre páginas sozinho.","A verificação encontra extensões suspeitas e adware."],keywords:["malware","adware","vírus","extensão","navegador"]}
+const SUPABASE_URL='https://qjqqpqogoxgjricazrtj.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqcXFwcW9nb3hnanJpY2F6cnRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNzQzMDIsImV4cCI6MjA5Nzg1MDMwMn0.CGVLLoC1wODvUB9cdw1o5T43MTGW8jplVIY-QQxc0yM';
+const TEACHER_PIN='1234';
+const hasSupabase=!SUPABASE_URL.includes('COLE_AQUI')&&!SUPABASE_ANON_KEY.includes('COLE_AQUI');
+const sb=hasSupabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const LS={user:'uc03_user_v3',mode:'uc03_global_mode',scores:'uc03_scores_v3',answered:'uc03_answered_v3',teacher:'uc03_teacher_v3',settings:'uc03_settings_v3'};
+const defaultSettings={mode:'historia',activities:{diagnostico:true,anatomia:true,consultoria:true,missoes:true},releasedCases:Array.from({length:50},(_,i)=>i+1)};
+let state={user:null,settings:load(LS.settings,defaultSettings),currentPage:'home',currentCase:null,currentHint:1,arena:{round:0,hint:0,case:null,student:null,next:null}};
+const students=['Ana Luiza','Carlos','Rafael','João Vitor','Guilherme','Maria Gabriele','Victor','Levi','Linara','Yan','Nicoly','Karol','Lara','Karen','Gabriel','Vinicius'];
+const consulting={
+'Ana Luiza':['Clínica Odontológica Sorriso+','R$ 6.800','Computador para recepção e apoio clínico. Uso com sistema odontológico, radiografias digitais, documentos, videochamadas e organização administrativa.'],
+'Carlos':['Escritório de Engenharia Civil','R$ 11.500','Máquina para projetos técnicos, plantas, modelagem e visualização arquitetônica.'],
+'Rafael':['Streamer Gamer','R$ 13.500','Estação para transmissões ao vivo, jogos AAA, edição de cortes e uso de OBS, Discord e softwares de captura.'],
+'João Vitor':['Empresa de Monitoramento','R$ 7.500','Central de monitoramento com funcionamento prolongado e múltiplas telas.'],
+'Guilherme':['Desenvolvedor Full Stack','R$ 9.200','Programação, containers, bancos de dados, emuladores e ambientes de teste.'],
+'Maria Gabriele':['Designer Gráfico','R$ 9.800','Criação visual, edição de imagens, identidade visual e produção de peças digitais.'],
+'Victor':['Empresa de Contabilidade','R$ 5.900','Rotinas fiscais, planilhas, documentos, sistemas web e impressão.'],
+'Levi':['Arquiteto 3D','R$ 14.500','Modelagem arquitetônica, renderização e visualização 3D.'],
+'Linara':['Escola Particular','R$ 4.800','Laboratório de informática, aulas práticas, navegação, digitação e programação básica.'],
+'Yan':['Editor de Vídeo','R$ 12.000','Edição com múltiplas camadas, efeitos, correção de cor e exportação frequente.'],
+'Nicoly':['Consultório Médico','R$ 7.300','Prontuário eletrônico, teleatendimento, documentos, exames simples e segurança.'],
+'Karol':['Agência de Marketing','R$ 8.500','Posts, anúncios, apresentações, imagens com IA, relatórios e materiais comerciais.'],
+'Lara':['Influenciadora Digital','R$ 10.500','Criação de vídeos, transmissões, edição de conteúdos curtos e IA.'],
+'Karen':['Home Lab','R$ 9.800','Servidor doméstico para virtualização, NAS, containers e serviços internos.'],
+'Gabriel':['Cyber Café Gamer','R$ 15.000','Jogos competitivos, upgrade, refrigeração, estética e alto FPS.'],
+'Vinicius':['Pesquisador em IA','R$ 18.000','Python, machine learning, modelos locais, CUDA e virtualização.']
+};
+const baseCases=[
+['Computador não liga','Nenhum LED acende.','Tomada e cabo funcionam em outro equipamento.','Fonte de alimentação, cabo, botão power ou placa-mãe.'],
+['Liga, mas não aparece imagem','Coolers giram e LEDs acendem.','Ao recolocar a RAM, às vezes volta vídeo.','Memória RAM mal encaixada ou com defeito.'],
+['Desliga após alguns minutos','Gabinete fica muito quente.','CPU chega perto de 95°C.','Superaquecimento, cooler, pasta térmica ou fluxo de ar.'],
+['Mensagem No Boot Device','BIOS abre normalmente.','SSD não aparece na ordem de boot.','SSD/HD, cabo SATA, M.2, ordem de boot ou sistema.'],
+['Tela azul frequente','Reinicia durante o uso.','Ocorre mais em multitarefa.','RAM, driver, sistema corrompido ou disco.'],
+['Monitor sem sinal','Outro monitor funciona.','Cabo HDMI apresenta mau contato.','Cabo ou porta de vídeo.'],
+['Computador muito lento','Programas levam minutos.','Disco fica em 100%.','HD degradado, processos, malware ou pouca RAM.'],
+['USB frontal não funciona','Portas traseiras funcionam.','Cabo interno USB está solto.','Conector USB frontal ou header da placa-mãe.'],
+['Internet não acessa','Wi-Fi conectado.','DNS não responde.','DNS, gateway, roteador ou configuração de rede.'],
+['Notebook sem imagem interna','Monitor externo exibe vídeo.','Tela interna permanece apagada.','Tela LCD, flat cable ou backlight.']
 ];
-
-let currentStudent = JSON.parse(localStorage.getItem("student") || "null");
-let currentCase = null;
-let revealed = 0;
-let rescueMode = false;
-
-const $ = (id) => document.getElementById(id);
-
-function normalize(text){return (text||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
-function basePoints(){ if(rescueMode) return 5; return revealed <= 1 ? 10 : revealed === 2 ? 9 : 8; }
-function setStatus(){ $("connectionStatus").textContent = isConfigured ? "Supabase conectado" : "Modo local: configure o Supabase"; }
-function saveStudent(){
-  const name = $("studentName").value.trim();
-  const klass = $("className").value.trim() || "Turma não informada";
-  if(!name) return alert("Informe o nome do aluno ou dupla.");
-  currentStudent = {name, class_name: klass};
-  localStorage.setItem("student", JSON.stringify(currentStudent));
-  renderPlayer();
-}
-function changeStudent(){
-  localStorage.removeItem("student");
-  currentStudent = null;
-  $("studentName").value = "";
-  renderPlayer();
-}
-function continueStudent(){
-  document.querySelector(".game-card")?.scrollIntoView({behavior:"smooth", block:"start"});
-}
-function renderPlayer(){
-  const loginBox = $("loginBox");
-  const savedBox = $("savedPlayerBox");
-  const setupCard = $("setupCard");
-  if(currentStudent){
-    if($("studentName")) $("studentName").value = currentStudent.name;
-    if($("className")) $("className").value = currentStudent.class_name;
-    $("playerLabel").textContent = `Jogador: ${currentStudent.name} · ${currentStudent.class_name}`;
-    $("savedStudentName").textContent = currentStudent.name;
-    $("savedClassName").textContent = currentStudent.class_name;
-    $("playerAvatar").textContent = currentStudent.name.trim().charAt(0).toUpperCase() || "?";
-    loginBox.classList.add("hidden");
-    savedBox.classList.remove("hidden");
-    setupCard.classList.add("is-saved");
-  } else {
-    $("playerLabel").textContent = "Entre no jogo para responder.";
-    loginBox.classList.remove("hidden");
-    savedBox.classList.add("hidden");
-    setupCard.classList.remove("is-saved");
-  }
-}
-function renderCaseButtons(){
-  const box = $("caseSelector"); box.innerHTML = "";
-  cases.forEach(c=>{
-    const btn = document.createElement("button");
-    btn.textContent = `Caso ${String(c.id).padStart(2,"0")}`;
-    btn.onclick = ()=>selectCase(c.id);
-    btn.id = `caseBtn${c.id}`;
-    box.appendChild(btn);
-  });
-}
-function selectCase(id){
-  currentCase = cases.find(c=>c.id===id); revealed = 0; rescueMode = false;
-  document.querySelectorAll(".case-selector button").forEach(b=>b.classList.remove("active"));
-  $(`caseBtn${id}`).classList.add("active");
-  $("caseBox").classList.remove("hidden");
-  $("caseTitle").textContent = `${String(currentCase.id).padStart(2,"0")} · ${currentCase.title}`;
-  $("clues").innerHTML = ""; $("feedback").textContent = ""; $("feedback").className = "feedback";
-  $("answerForm").reset(); updatePoints(); revealNextClue();
-}
-function revealNextClue(){
-  if(!currentCase || revealed >= 3) return;
-  const div = document.createElement("div"); div.className = "clue";
-  div.innerHTML = `<strong>Pista ${revealed+1}</strong><br>${currentCase.clues[revealed]}`;
-  $("clues").appendChild(div); revealed++; updatePoints();
-  if(revealed >= 3) $("nextClueBtn").disabled = true; else $("nextClueBtn").disabled = false;
-}
-function updatePoints(){ $("casePoints").textContent = `${basePoints()} pts`; }
-function setRescue(){ rescueMode = true; updatePoints(); }
-function scoreAnswer(){
-  const diagnosis = normalize($("diagnosis").value);
-  const causes = normalize($("causes").value);
-  const verification = normalize($("verification").value);
-  const all = `${diagnosis} ${causes} ${verification}`;
-  const keywordHit = currentCase.keywords.some(k => all.includes(normalize(k)));
-  const hasCause = causes.split(/[,;\n]/).filter(x=>x.trim().length>8).length >= 2 || causes.length > 45;
-  const hasVerification = verification.length >= 35;
-  const base = basePoints();
-  if(keywordHit && hasCause && hasVerification) return {score:base, ok:true, msg:`Resposta validada com ${base} pontos.`};
-  if(keywordHit) return {score:Math.ceil(base/2), ok:false, msg:`Diagnóstico parcialmente validado. Faltou detalhar causas ou verificação. Pontuação: ${Math.ceil(base/2)}.`};
-  return {score:0, ok:false, msg:"Resposta enviada, mas o diagnóstico não bateu com as palavras-chave esperadas. O professor pode revisar manualmente."};
-}
-async function submitAnswer(e){
-  e.preventDefault();
-  if(!currentStudent) return alert("Entre no jogo com seu nome antes de responder.");
-  if(!currentCase) return;
-  const result = scoreAnswer();
-  const payload = {
-    student_name: currentStudent.name,
-    class_name: currentStudent.class_name,
-    case_id: currentCase.id,
-    case_title: currentCase.title,
-    clues_used: rescueMode ? 4 : revealed,
-    rescue_mode: rescueMode,
-    diagnosis: $("diagnosis").value.trim(),
-    causes: $("causes").value.trim(),
-    verification: $("verification").value.trim(),
-    score: result.score
-  };
-  if(isConfigured){
-    const {error} = await db.from("submissions").upsert(payload, {onConflict:"student_name,class_name,case_id"});
-    if(error){ console.error(error); alert("Erro ao salvar no Supabase: " + error.message); return; }
-  } else {
-    const rows = JSON.parse(localStorage.getItem("submissions")||"[]");
-    const idx = rows.findIndex(r=>r.student_name===payload.student_name && r.class_name===payload.class_name && r.case_id===payload.case_id);
-    if(idx>=0) rows[idx]=payload; else rows.push(payload);
-    localStorage.setItem("submissions", JSON.stringify(rows));
-  }
-  $("feedback").textContent = result.msg;
-  $("feedback").className = `feedback ${result.ok?"ok":"warn"}`;
-  loadRanking();
-}
-async function loadRanking(){
-  let rows = [];
-  if(isConfigured){
-    const {data,error} = await db.from("leaderboard").select("*").limit(50);
-    if(error){ console.error(error); return; }
-    rows = data || [];
-  } else {
-    const submissions = JSON.parse(localStorage.getItem("submissions")||"[]");
-    const grouped = {};
-    submissions.forEach(r=>{
-      const key = `${r.student_name}|${r.class_name}`;
-      grouped[key] ??= {student_name:r.student_name,class_name:r.class_name,total_score:0,cases_answered:0};
-      grouped[key].total_score += Number(r.score||0); grouped[key].cases_answered += 1;
-    });
-    rows = Object.values(grouped).sort((a,b)=>b.total_score-a.total_score);
-  }
-  const list = $("rankingList"); list.innerHTML = "";
-  if(!rows.length){ list.innerHTML = "<li>Nenhuma resposta enviada ainda.</li>"; return; }
-  rows.forEach((r,i)=>{
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${i+1}º · ${r.student_name}</strong><span>${r.class_name} · ${r.total_score} pontos · ${r.cases_answered} casos</span>`;
-    list.appendChild(li);
-  });
-}
-function randomCase(){ selectCase(cases[Math.floor(Math.random()*cases.length)].id); }
-
-document.addEventListener("DOMContentLoaded",()=>{
-  setStatus(); renderPlayer(); renderCaseButtons(); loadRanking();
-  $("saveStudentBtn").onclick = saveStudent;
-  $("continueStudentBtn").onclick = continueStudent;
-  $("changeStudentBtn").onclick = changeStudent;
-  $("nextClueBtn").onclick = revealNextClue;
-  $("rescueBtn").onclick = setRescue;
-  $("randomCaseBtn").onclick = randomCase;
-  $("refreshRankingBtn").onclick = loadRanking;
-  $("answerForm").onsubmit = submitAnswer;
-});
+const cases=Array.from({length:50},(_,i)=>{const b=baseCases[i%baseCases.length];return{id:i+1,title:`Caso ${String(i+1).padStart(2,'0')}`,pistas:[b[0],b[1],b[2]],answer:b[3]}});
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function $(id){return document.getElementById(id)}
+function show(el){el.classList.remove('hidden')}function hide(el){el.classList.add('hidden')}
+function init(){state.user=load(LS.user,null);setupIdentity();setupNav();setupForms();renderAll(); if(state.user){hide($('loginScreen'));show($('app'))}else{show($('loginScreen'));hide($('app'))}}
+function setupIdentity(){const ret=$('returningCard'),form=$('identityForm');if(state.user){$('returningTitle').textContent=`Continuar como ${state.user.name}`;$('returningMeta').textContent=`Turma: ${state.user.turma}`;show(ret);hide(form)}$('continueBtn').onclick=()=>{hide($('loginScreen'));show($('app'));renderAll()};$('changeUserBtn').onclick=()=>{localStorage.removeItem(LS.user);state.user=null;hide(ret);show(form)};form.onsubmit=e=>{e.preventDefault();const name=$('studentName').value.trim();if(!name)return;state.user={name,turma:$('studentClass').value};save(LS.user,state.user);hide($('loginScreen'));show($('app'));renderAll()};$('logoutBtn').onclick=()=>{localStorage.removeItem(LS.user);location.reload()}}
+function setupNav(){document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>go(b.dataset.jump))}
+function go(page){if(page!=='home'&&page!=='ranking'&&page!=='conquistas'&&page!=='professor'&&state.settings.mode==='arena'){alert('Modo Arena ativo. As atividades individuais estão bloqueadas.');return}document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(page).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));state.currentPage=page;if(page==='diagnostico')loadNextCase();renderAll()}
+function setupForms(){for(let i=1;i<=39;i++)$('componentNumber').insertAdjacentHTML('beforeend',`<option>${i}</option>`);
+$('revealHintBtn').onclick=()=>{if(state.currentHint<3){state.currentHint++;renderCase()}};
+$('diagnosisForm').onsubmit=async e=>{e.preventDefault();if(isArena())return alert('Modo Arena ativo.');const key=`${state.user.name}|diagnostico|${state.currentCase.id}`;const answered=load(LS.answered,{});if(answered[key])return msg('diagStatusMsg','Caso já respondido.','warn');answered[key]=true;save(LS.answered,answered);await insert('respostas_diagnostico',{aluno:state.user.name,turma:state.user.turma,caso_id:state.currentCase.id,pista_usada:state.currentHint,diagnostico:$('diagAnswer').value,possiveis_causas:$('diagCauses').value,como_testar:$('diagTest').value,pontos_auto:Math.max(6,11-state.currentHint)});addScore('diagnostico',Math.max(6,11-state.currentHint));e.target.reset();msg('diagStatusMsg','Resposta enviada. Caso bloqueado para este aluno.','ok');loadNextCase()};
+$('anatomiaForm').onsubmit=async e=>{e.preventDefault();if(isArena())return alert('Modo Arena ativo.');const comp=$('componentNumber').value;const key=`${state.user.name}|anatomia|${comp}`;const answered=load(LS.answered,{});if(answered[key])return msg('anatStatusMsg','Componente já enviado.','warn');answered[key]=true;save(LS.answered,answered);await insert('respostas_anatomia',{aluno:state.user.name,turma:state.user.turma,componente_numero:+comp,nome:$('componentName').value,funcao:$('componentFunction').value,defeitos:$('componentDefects').value,sintomas:$('componentSymptoms').value,como_testar:$('componentTest').value,pontos_auto:2});addScore('anatomia',2);e.target.reset();msg('anatStatusMsg','Componente salvo.','ok')};
+$('consultForm').onsubmit=async e=>{e.preventDefault();if(isArena())return alert('Modo Arena ativo.');const key=`${state.user.name}|consultoria|principal`;const answered=load(LS.answered,{});if(answered[key])return msg('consultStatusMsg','Consultoria já enviada. Peça ao professor para reabrir, se necessário.','warn');answered[key]=true;save(LS.answered,answered);await insert('entregas_consultoria_hardware',{aluno:state.user.name,turma:state.user.turma,link_planilha:$('sheetLink').value,link_canva:$('canvaLink').value,observacoes:$('consultObs').value});addScore('consultoria',10);e.target.reset();msg('consultStatusMsg','Entrega registrada. Aguardando avaliação final do professor.','ok')};
+$('teacherLoginBtn').onclick=()=>{if($('teacherPin').value===TEACHER_PIN){save(LS.teacher,true);renderTeacher()}else alert('PIN incorreto')};$('teacherLogoutBtn').onclick=()=>{localStorage.removeItem(LS.teacher);renderTeacher()};$('globalArenaToggle').onchange=e=>{state.settings.mode=e.target.checked?'arena':'historia';save(LS.settings,state.settings);renderAll()};$('drawArenaBtn').onclick=drawArena;$('nextArenaHintBtn').onclick=()=>{if(state.arena.case&&state.arena.hint<3){state.arena.hint++;renderArena()}};$('passArenaBtn').onclick=()=>{drawArena(true)};$('fillEvalBtn').onclick=()=>{if(state.arena.student){$('manualStudent').value=state.arena.student;$('manualActivity').value='diagnostico';$('manualPoints').value=state.arena.hint===1?10:state.arena.hint===2?8:6}};$('manualScoreForm').onsubmit=async e=>{e.preventDefault();await insert('pontuacoes_manuais',{aluno:$('manualStudent').value,turma:$('manualClass').value,atividade:$('manualActivity').value,pontos:+$('manualPoints').value,comentario:$('manualComment').value});addScoreFor($('manualStudent').value,$('manualActivity').value,+$('manualPoints').value);msg('manualStatusMsg','Pontuação lançada.','ok');e.target.reset();renderAll()};$('refreshRankingBtn').onclick=renderRanking;$('refreshRankingHome').onclick=renderRanking;$('refreshResponsesBtn').onclick=renderResponses}
+async function insert(table,payload){if(!hasSupabase)return true;const {error}=await sb.from(table).insert(payload);if(error){console.error(error);alert('Erro no Supabase. Verifique tabela/RLS.')}return !error}
+function isArena(){return state.settings.mode==='arena'}
+function renderAll(){if(!state.user)return;renderHeader();renderLocks();renderConsulting();renderMissions();renderBadges();renderRanking();renderTeacher()}
+function renderHeader(){$('welcomeName').textContent=`Bem-vindo(a), ${state.user.name}`;$('welcomeClass').textContent=`Turma: ${state.user.turma}`;const s=scoresFor(state.user.name);$('xpDiag').textContent=s.diagnostico||0;$('xpAnat').textContent=s.anatomia||0;$('xpCons').textContent=s.consultoria||0;$('xpExtra').textContent=s.extra||0;$('xpTotal').textContent=`${Object.values(s).reduce((a,b)=>a+b,0)} XP`;$('modeBadge').textContent=isArena()?'Arena':'História';$('modeBadge').className=isArena()?'':'success';$('arenaNotice').classList.toggle('hidden',!isArena())}
+function renderLocks(){document.querySelectorAll('.student-module').forEach(b=>b.classList.toggle('locked',isArena()));['diag','anatomia','consultoria'].forEach(prefix=>{const block=$(prefix+'Blocked'),play=$(prefix+'Play'); if(block&&play){block.classList.toggle('hidden',!isArena());play.classList.toggle('hidden',isArena())}})}
+function loadNextCase(){if(isArena())return;const answered=load(LS.answered,{});const next=cases.find(c=>state.settings.releasedCases.includes(c.id)&&!answered[`${state.user.name}|diagnostico|${c.id}`]);state.currentCase=next||cases[0];state.currentHint=1;renderCase()}
+function renderCase(){if(!state.currentCase)return; $('caseTitle').textContent=`${state.currentCase.title} · ${state.currentCase.pistas[0]}`;$('caseStatus').textContent=`Pista ${state.currentHint}`;$('pistasBox').innerHTML=state.currentCase.pistas.slice(0,state.currentHint).map((p,i)=>`<div class="hint"><strong>Pista ${i+1}</strong><br>${p}</div>`).join('');$('revealHintBtn').disabled=state.currentHint>=3}
+function renderConsulting(){const c=consulting[state.user.name]||['Cliente Técnico','R$ 8.000','Defina uma configuração compatível com a necessidade recebida.'];$('studentConsultingCase').innerHTML=`<h3>${c[0]}</h3><span class="budget">${c[1]}</span><p>${c[2]}</p><ul><li>Pesquisar peças reais com links.</li><li>Respeitar orçamento.</li><li>Justificar compatibilidade e prazo.</li><li>Preparar defesa oral.</li></ul>`}
+function renderMissions(){const missions=[['Acertar 5 diagnósticos','+30 XP'],['Identificar 10 componentes','+30 XP'],['Entregar consultoria','+50 XP'],['Participar da Arena','+20 XP']];$('missionsGrid').innerHTML=missions.map(m=>`<article class="course-card"><span>🧩</span><h3>${m[0]}</h3><p>Missão de aula ou laboratório.</p><strong>${m[1]}</strong></article>`).join('')}
+function renderBadges(){const badges=['Mestre da RAM','Especialista em SSD','Caçador de BSOD','Consultor de Hardware','Anatomia Expert','Técnico Master'];$('badgesGrid').innerHTML=badges.map(b=>`<article class="course-card"><span>🏅</span><h3>${b}</h3><p>Conquista liberada conforme desempenho.</p></article>`).join('')}
+function renderRanking(){const scores=load(LS.scores,{});let rows=Object.entries(scores).map(([name,v])=>({name,total:Object.values(v).reduce((a,b)=>a+b,0),turma:v.turma||'UC03 Manutenção'})).sort((a,b)=>b.total-a.total);if(rows.length===0&&state.user)rows=[{name:state.user.name,turma:state.user.turma,total:0}];const html=rows.map((r,i)=>`<div class="rank-row"><div>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div><div><strong>${r.name}</strong><br><small>${r.turma}</small></div><strong>${r.total} XP</strong></div>`).join('');$('rankingPodium').innerHTML=html;$('rankingFull').innerHTML=html}
+function renderTeacher(){const logged=load(LS.teacher,false);$('profLogin').classList.toggle('hidden',logged);$('profPanel').classList.toggle('hidden',!logged);if(!logged)return;$('globalArenaToggle').checked=isArena();$('teacherModeText').innerHTML=isArena()?'<strong>Modo Arena ativo.</strong> Alunos bloqueados nas atividades individuais.':'<strong>Modo História ativo.</strong> Alunos respondem individualmente.';$('activityToggles').innerHTML=Object.entries(state.settings.activities).map(([k,v])=>`<div class="toggle-item"><span>${label(k)}</span><input type="checkbox" ${v?'checked':''} data-act="${k}"></div>`).join('');document.querySelectorAll('[data-act]').forEach(i=>i.onchange=e=>{state.settings.activities[e.target.dataset.act]=e.target.checked;save(LS.settings,state.settings);renderAll()});renderArena();renderResponses()}
+function drawArena(pass=false){state.arena.round++;state.arena.student=pass?state.arena.next||pick(students):pick(students);state.arena.next=pick(students.filter(s=>s!==state.arena.student));state.arena.case=pick(cases.filter(c=>state.settings.releasedCases.includes(c.id)));state.arena.hint=1;renderArena()}
+function renderArena(){$('arenaRoundBadge').textContent=`Rodada ${state.arena.round}`;$('arenaStudent').textContent=state.arena.student||'Aguardando';$('arenaNext').textContent=state.arena.next||'--';$('arenaCase').textContent=state.arena.case?state.arena.case.title:'--';$('arenaHint').textContent=state.arena.hint||'--';$('arenaQuestion').innerHTML=state.arena.case?`<strong>${state.arena.case.pistas[0]}</strong><br>${state.arena.case.pistas.slice(1,state.arena.hint).map((p,i)=>`<br><strong>Pista ${i+2}:</strong> ${p}`).join('')}`:'Nenhuma rodada sorteada.'}
+function renderResponses(){const rows=load('uc03_local_responses',[]);$('responsesTable').innerHTML=rows.slice(-20).reverse().map(r=>`<tr><td>${r.aluno}</td><td>${r.ref||'-'}</td><td>${r.text||'-'}</td><td>${r.xp||0}</td><td>${r.data||'-'}</td><td><button class="btn small">Ver</button></td></tr>`).join('')||'<tr><td colspan="6">Nenhuma resposta local registrada. Com Supabase configurado, os dados virão do banco.</td></tr>'}
+function addScore(activity,points){addScoreFor(state.user.name,activity,points)}
+function addScoreFor(name,activity,points){const scores=load(LS.scores,{});scores[name]=scores[name]||{turma:state.user?.turma||'UC03 Manutenção',diagnostico:0,anatomia:0,consultoria:0,extra:0};const key=activity==='anatomia'?'anatomia':activity==='consultoria'?'consultoria':activity==='extra'?'extra':'diagnostico';scores[name][key]=(scores[name][key]||0)+points;save(LS.scores,scores);renderAll()}
+function scoresFor(name){const s=load(LS.scores,{});return s[name]||{diagnostico:0,anatomia:0,consultoria:0,extra:0}}
+function msg(id,text,type){const el=$(id);el.textContent=text;el.style.color=type==='ok'?'#86efac':type==='warn'?'#fed7aa':'#fecaca'}
+function label(k){return({diagnostico:'Diagnóstico',anatomia:'Anatomia',consultoria:'Consultoria',missoes:'Missões'})[k]||k}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+init();
