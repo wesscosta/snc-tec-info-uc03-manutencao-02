@@ -1,7 +1,7 @@
 // 1) Troque pelos dados do seu projeto Supabase.
 // Supabase > Project Settings > API > Project URL e anon public key.
-const SUPABASE_URL = "https://qjqqpqogoxgjricazrtj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqcXFwcW9nb3hnanJpY2F6cnRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNzQzMDIsImV4cCI6MjA5Nzg1MDMwMn0.CGVLLoC1wODvUB9cdw1o5T43MTGW8jplVIY-QQxc0yM";
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE";
+const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_ANON_PUBLIC";
 
 const isConfigured = SUPABASE_URL.startsWith("https://") && SUPABASE_ANON_KEY.length > 40;
 const db = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -77,11 +77,34 @@ function saveStudent(){
   localStorage.setItem("student", JSON.stringify(currentStudent));
   renderPlayer();
 }
+function changeStudent(){
+  localStorage.removeItem("student");
+  currentStudent = null;
+  $("studentName").value = "";
+  renderPlayer();
+}
+function continueStudent(){
+  document.querySelector(".game-card")?.scrollIntoView({behavior:"smooth", block:"start"});
+}
 function renderPlayer(){
+  const loginBox = $("loginBox");
+  const savedBox = $("savedPlayerBox");
+  const setupCard = $("setupCard");
   if(currentStudent){
-    $("studentName").value = currentStudent.name;
-    $("className").value = currentStudent.class_name;
+    if($("studentName")) $("studentName").value = currentStudent.name;
+    if($("className")) $("className").value = currentStudent.class_name;
     $("playerLabel").textContent = `Jogador: ${currentStudent.name} · ${currentStudent.class_name}`;
+    $("savedStudentName").textContent = currentStudent.name;
+    $("savedClassName").textContent = currentStudent.class_name;
+    $("playerAvatar").textContent = currentStudent.name.trim().charAt(0).toUpperCase() || "?";
+    loginBox.classList.add("hidden");
+    savedBox.classList.remove("hidden");
+    setupCard.classList.add("is-saved");
+  } else {
+    $("playerLabel").textContent = "Entre no jogo para responder.";
+    loginBox.classList.remove("hidden");
+    savedBox.classList.add("hidden");
+    setupCard.classList.remove("is-saved");
   }
 }
 function renderCaseButtons(){
@@ -184,6 +207,8 @@ function randomCase(){ selectCase(cases[Math.floor(Math.random()*cases.length)].
 document.addEventListener("DOMContentLoaded",()=>{
   setStatus(); renderPlayer(); renderCaseButtons(); loadRanking();
   $("saveStudentBtn").onclick = saveStudent;
+  $("continueStudentBtn").onclick = continueStudent;
+  $("changeStudentBtn").onclick = changeStudent;
   $("nextClueBtn").onclick = revealNextClue;
   $("rescueBtn").onclick = setRescue;
   $("randomCaseBtn").onclick = randomCase;

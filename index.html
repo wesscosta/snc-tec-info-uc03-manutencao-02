@@ -18,14 +18,36 @@
   </header>
 
   <main class="layout">
-    <section class="card setup-card">
-      <h2>Identificação</h2>
-      <label>Nome do aluno ou dupla</label>
-      <input id="studentName" placeholder="Ex.: Ana Luiza" maxlength="80" />
-      <label>Turma</label>
-      <input id="className" placeholder="Ex.: UC03 Manutenção" maxlength="80" />
-      <button id="saveStudentBtn" class="primary">Entrar no jogo</button>
-      <p class="hint">Use sempre o mesmo nome para somar corretamente no ranking.</p>
+    <section class="card setup-card" id="setupCard">
+      <div id="loginBox">
+        <h2>Identificação</h2>
+        <label>Nome do aluno ou dupla</label>
+        <input id="studentName" placeholder="Ex.: Ana Luiza" maxlength="80" autocomplete="name" />
+        <label>Turma</label>
+        <select id="className">
+          <option value="UC03 Manutenção">UC03 Manutenção</option>
+          <option value="UC02 Gestão de Projetos de TI">UC02 Gestão de Projetos de TI</option>
+          <option value="Outra turma">Outra turma</option>
+        </select>
+        <button id="saveStudentBtn" class="primary">Entrar no jogo</button>
+        <p class="hint">O nome e a turma ficam salvos neste dispositivo usando localStorage.</p>
+      </div>
+
+      <div id="savedPlayerBox" class="hidden">
+        <h2>Jogador identificado</h2>
+        <div class="player-card">
+          <div id="playerAvatar" class="avatar">?</div>
+          <div>
+            <strong id="savedStudentName">Aluno</strong>
+            <span id="savedClassName">Turma</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="continueStudentBtn" class="primary">Continuar</button>
+          <button id="changeStudentBtn" class="secondary">Trocar usuário</button>
+        </div>
+        <p class="hint">Use “Trocar usuário” se outro aluno for utilizar o mesmo computador.</p>
+      </div>
     </section>
 
     <section class="card rules-card">
